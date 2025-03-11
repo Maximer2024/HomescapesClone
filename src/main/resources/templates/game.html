@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Игра</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 50px;
+        background-color: #f0f8ff;
+    }
+    h1 {
+        font-size: 24px;
+        color: #333;
+    }
+    .game-container {
+        display: grid;
+        grid-template-columns: repeat(3, 100px);
+        grid-gap: 10px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    .tile {
+        width: 100px;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: bold;
+        background-color: #ffcccb;
+        border: 2px solid #d63384;
+        cursor: pointer;
+        border-radius: 10px;
+    }
+    .hidden {
+        visibility: hidden;
+    }
+    .message {
+        margin-top: 20px;
+        font-size: 20px;
+        color: green;
+        font-weight: bold;
+    }
+    .back-button {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 18px;
+        background-color: #ff4081;
+        color: white;
+        border-radius: 10px;
+        text-decoration: none;
+    }
+    .back-button:hover {
+        background-color: #d8366f;
+    }
+  </style>
+</head>
+<body>
+<h1>Собери правильную последовательность!</h1>
+<p>Нажимай на плитки, чтобы поменять их местами.</p>
+
+<div class="game-container" id="game-board">
+  <div class="tile" data-id="1">1</div>
+  <div class="tile" data-id="2">2</div>
+  <div class="tile" data-id="3">3</div>
+  <div class="tile" data-id="4">4</div>
+  <div class="tile" data-id="5">5</div>
+  <div class="tile" data-id="6">6</div>
+  <div class="tile" data-id="7">7</div>
+  <div class="tile" data-id="8">8</div>
+  <div class="tile hidden" data-id="9"></div>
+</div>
+
+<p class="message" id="win-message" style="display: none;">Саша, я тебя люблю! ❤️</p>
+
+<a href="/" class="back-button">Назад</a>
+
+<script>
+  let tiles = $(".tile");
+  let emptyTile = $(".hidden");
+
+  tiles.click(function () {
+      let clickedTile = $(this);
+      let clickedIndex = tiles.index(clickedTile);
+      let emptyIndex = tiles.index(emptyTile);
+
+      if ([clickedIndex - 1, clickedIndex + 1, clickedIndex - 3, clickedIndex + 3].includes(emptyIndex)) {
+          let tempText = clickedTile.text();
+          clickedTile.text("");
+          emptyTile.text(tempText);
+          emptyTile.removeClass("hidden");
+          clickedTile.addClass("hidden");
+          emptyTile = clickedTile;
+      }
+
+      checkWin();
+  });
+
+  function checkWin() {
+      let correctOrder = ["1", "2", "3", "4", "5", "6", "7", "8", ""];
+      let currentOrder = tiles.map((_, tile) => $(tile).text()).get();
+
+      if (JSON.stringify(correctOrder) === JSON.stringify(currentOrder)) {
+          $("#win-message").fadeIn();
+      }
+  }
+</script>
+</body>
+</html>

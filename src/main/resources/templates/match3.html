@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Три в ряд 💖</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+        font-family: 'Comic Sans MS', cursive, sans-serif;
+        text-align: center;
+        background: linear-gradient(180deg, #ffb6c1, #ff69b4);
+        color: white;
+        padding: 10px;
+    }
+    h1 {
+        font-size: 32px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    h2 {
+        font-size: 24px;
+    }
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(6, 50px);
+        grid-template-rows: repeat(9, 50px);
+        gap: 4px;
+        justify-content: center;
+        align-items: center;
+        margin: auto;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 10px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+        width: fit-content;
+        position: relative;
+    }
+    .cell {
+        width: 50px;
+        height: 50px;
+        background-size: contain;
+        cursor: pointer;
+        transition: transform 0.3s, opacity 0.3s;
+    }
+    .back-button {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 12px 24px;
+        font-size: 20px;
+        background: #ff1493;
+        color: white;
+        border: none;
+        border-radius: 15px;
+        text-decoration: none;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+        transition: 0.3s;
+    }
+    .back-button:hover {
+        background: #ff69b4;
+        transform: scale(1.1);
+    }
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+    .modal-content {
+        background-color: #ff69b4;
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        max-width: 400px;
+        font-size: 22px;
+    }
+    .modal-button {
+        background: #fff;
+        color: #ff1493;
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+<h1>✨ Три в ряд ✨</h1>
+<h2>Комбинации: <span id="score">0</span>/20</h2>
+<h2>Осталось ходов: <span id="moves">20</span></h2>
+<div class="grid" id="game-grid"></div>
+<a href="/" class="back-button">Назад</a>
+
+<script>
+  let coinsAdded = false;
+  document.addEventListener("DOMContentLoaded", function () {
+  document.querySelector(".modal-button").addEventListener("click", closeModal);
+      const images = [
+          'img/heart_red.png',
+          'img/heart_blue.png',
+          'img/heart_green.png',
+          'img/heart_gold.png',
+          'img/heart_pink.png'
+      ];
+
+      const gridSize = 6;
+      const gridHeight = 9;
+      let score = 0;
+      let moves = 20;
+      let selectedTile = null;
+      let gameGrid = document.getElementById("game-grid");
+      let gridArray = [];
+
+      function logAction(action, data = {}) {
+          console.log(`[LOG] ${action}`, data);
+      }
+      function closeModal() {
+        document.getElementById("win-modal").style.display = "none";
+      }
+
+      function createGrid() {
+          logAction("Создание сетки без комбинаций");
+          do {
+              gridArray = [];
+              for (let i = 0; i < gridHeight; i++) {
+                  gridArray[i] = [];
+                  for (let j = 0; j < gridSize; j++) {
+                      let newImage;
+                      do {
+                          newImage = images[Math.floor(Math.random() * images.length)];
+                      } while (createsMatch(i, j, newImage, gridArray));
+                      gridArray[i][j] = newImage;
+                  }
+              }
+          } while (findMatches(gridArray).size > 0);
+
+          renderGrid(gridArray);
+      }
+
+      function createsMatch(row, col, newImage, gridArray) {
+          return (
+              (col >= 2 && gridArray[row][col - 1] === newImage && gridArray[row][col - 2] === newImage) ||
+              (row >= 2 && gridArray[row - 1][col] === newImage && gridArray[row - 2][col] === newImage)
+          );
+      }
+
+      function renderGrid(gridArray) {
+          gameGrid.innerHTML = "";
+          for (let i = 0; i < gridHeight; i++) {
+              for (let j = 0; j < gridSize; j++) {
+                  let cell = createCell(i, j, gridArray[i][j]);
+                  gameGrid.appendChild(cell);
+              }
+          }
+      }
+
+      function createCell(row, col, image) {
+          let cell = document.createElement("div");
+          cell.classList.add("cell");
+          cell.dataset.row = row;
+          cell.dataset.col = col;
+          cell.style.backgroundImage = `url(${image})`;
+          cell.addEventListener("mousedown", selectTile);
+          cell.addEventListener("mouseup", dropTile);
+          return cell;
+      }
+
+      function selectTile(event) {
+          selectedTile = event.target;
+          logAction("Выбрана плитка", { row: selectedTile.dataset.row, col: selectedTile.dataset.col });
+      }
+
+      function dropTile(event) {
+          if (!selectedTile) return;
+          let targetTile = event.target;
+
+          if (!targetTile.classList.contains("cell") || selectedTile === targetTile) {
+              logAction("Сброс выбора плитки");
+              selectedTile = null;
+              return;
+          }
+
+          let r1 = parseInt(selectedTile.dataset.row);
+          let c1 = parseInt(selectedTile.dataset.col);
+          let r2 = parseInt(targetTile.dataset.row);
+          let c2 = parseInt(targetTile.dataset.col);
+
+          if (Math.abs(r1 - r2) + Math.abs(c1 - c2) === 1) {
+              logAction("Перемещение плитки", { from: [r1, c1], to: [r2, c2] });
+              swapTiles(r1, c1, r2, c2);
+
+              moves--;
+              document.getElementById("moves").textContent = moves;
+
+              setTimeout(() => {
+                  if (!processMatches()) {
+                      logAction("❌ Ход отменён, плитка возвращается назад");
+                      swapTiles(r1, c1, r2, c2);
+                  }
+              }, 300);
+          }
+          selectedTile = null;
+      }
+
+      function swapTiles(r1, c1, r2, c2) {
+          let tempImage = gridArray[r1][c1];
+          gridArray[r1][c1] = gridArray[r2][c2];
+          gridArray[r2][c2] = tempImage;
+          renderGrid(gridArray);
+      }
+
+      function processMatches() {
+          let matchedTiles = findMatches(gridArray);
+          if (matchedTiles.size > 0) {
+              logAction("✅ Найдены комбинации", matchedTiles);
+
+              matchedTiles.forEach(key => {
+                  let [r, c] = key.split(",").map(Number);
+                  gridArray[r][c] = null;
+              });
+
+              score += matchedTiles.size / 3;
+              document.getElementById("score").textContent = score.toFixed(0);
+
+              if (score >= 20) {
+                  showCongratulations();
+              }
+
+              setTimeout(() => {
+                  dropTiles();
+                  setTimeout(() => {
+                      if (findMatches(gridArray).size > 0) {
+                          processMatches();
+                      }
+                  }, 300);
+              }, 300);
+
+              return true;
+          }
+          return false;
+      }
+
+         function showCongratulations() {
+          if (!coinsAdded) {
+              coinsAdded = true;
+              let modal = document.getElementById("win-modal");
+              modal.style.display = "block";
+
+              fetch("/api/add-coins", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ amount: 350 })
+              })
+              .then(response => response.json())
+              .then(data => {
+                  if (data.new_balance !== undefined) {
+                      alert(`Баланс обновлен! Теперь у тебя ${data.new_balance} СашаКоинов!`);
+                  } else {
+                      console.error(  "Ошибка: сервер не вернул баланс", data);
+                  }
+              })
+              .catch(error => console.error("Ошибка при обновлении баланса:", error));
+          }
+      }
+
+      function findMatches(gridArray) {
+          let matchedTiles = new Set();
+          for (let i = 0; i < gridHeight; i++) {
+              for (let j = 0; j < gridSize - 2; j++) {
+                  if (gridArray[i][j] && gridArray[i][j] === gridArray[i][j + 1] && gridArray[i][j] === gridArray[i][j + 2]) {
+                      matchedTiles.add(`${i},${j}`);
+                      matchedTiles.add(`${i},${j + 1}`);
+                      matchedTiles.add(`${i},${j + 2}`);
+                  }
+              }
+          }
+          for (let j = 0; j < gridSize; j++) {
+              for (let i = 0; i < gridHeight - 2; i++) {
+                  if (gridArray[i][j] && gridArray[i][j] === gridArray[i + 1][j] && gridArray[i][j] === gridArray[i + 2][j]) {
+                      matchedTiles.add(`${i},${j}`);
+                      matchedTiles.add(`${i + 1},${j}`);
+                      matchedTiles.add(`${i + 2},${j}`);
+                  }
+              }
+          }
+          return matchedTiles;
+      }
+
+      function dropTiles() {
+          for (let j = 0; j < gridSize; j++) {
+              let emptySpaces = 0;
+              for (let i = gridHeight - 1; i >= 0; i--) {
+                  if (gridArray[i][j] === null) {
+                      emptySpaces++;
+                  } else if (emptySpaces > 0) {
+                      gridArray[i + emptySpaces][j] = gridArray[i][j];
+                      gridArray[i][j] = null;
+                  }
+              }
+
+              for (let i = 0; i < emptySpaces; i++) {
+                  gridArray[i][j] = images[Math.floor(Math.random() * images.length)];
+              }
+          }
+          renderGrid(gridArray);
+      }
+
+      createGrid();
+  });
+</script>
+
+<div id="win-modal" class="modal">
+  <div class="modal-content">
+    🎉 Ты молодец, я тебя люблю, держи +35 СашаКоинов! 🎉
+    <br><br>
+    ❤️ Спасибо, что ты есть! ❤️
+    <br><br>
+    <button class="modal-button" onclick="closeModal()">Ура! 🎊</button>
+  </div>
+</div>
+
+</body>
+</html>

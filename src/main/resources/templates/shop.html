@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Магазин 💖</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+        font-family: 'Comic Sans MS', cursive, sans-serif;
+        text-align: center;
+        background: linear-gradient(to bottom, #ffb6c1, #ff69b4);
+        background-attachment: fixed;
+        background-size: cover;
+        color: white;
+    }
+    .container {
+        background: white;
+        color: black;
+        width: 50%;
+        margin: auto;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+    }
+    .button {
+        background: #ff1493;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+    }
+    .button:hover {
+        background: #ff69b4;
+    }
+
+    #modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+        z-index: 999;
+    }
+    .modal-content {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        color: black;
+        width: 50%;
+        box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+        transform: translateY(-50px);
+        opacity: 0;
+        transition: all 0.5s ease-in-out;
+    }
+    .modal-content.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Добро пожаловать в магазин! 💖</h1>
+
+<div class="container">
+  <h2>Баланс: <span id="balance" th:text="${balance}"></span> ❤️ СашаКоин</h2>
+
+  <div th:each="item : ${items}">
+    <p>
+      <span th:text="${item.emoji}"></span>
+      <span th:text="${item.name}"></span> -
+      <span th:text="${item.price}"></span> ❤️СашаКоин
+      <button class="button" th:attr="onclick='buyItem(' + ${item.id} + ')'" >Купить</button>
+    </p>
+  </div>
+
+  <br>
+  <button class="button" onclick="window.location.href='/'">Назад</button>
+</div>
+
+<div id="modal">
+  <div class="modal-content" id="modal-content">
+    <p id="modal-message"></p>
+    <div id="modal-buttons">
+      <button class="button" id="modal-button" onclick="closeModal()">Ок</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentStep = 0;
+  let foodChoice = "";
+  let seriesChoice = "";
+
+  function buyItem(itemId) {
+      $.post("/buy", { itemId: itemId }, function(response) {
+          console.log(response);
+
+          if (response.success) {
+              showModal(response.success, "Ок", updateBalance);
+          }
+          if (response.special) {
+              showModal(response.special, "Я тебя тоже люблю! 💖", nextStep);
+          }
+          if (response.error) {
+              showModal(response.error, "Ок");
+          }
+      }, "json");
+  }
+
+  function updateBalance() {
+      $.get("/api/get-balance", function(response) {
+          document.getElementById("balance").innerText = response.balance;
+      });
+  }
+
+  function showModal(message, buttonText, callback = null) {
+    console.log("Открываю модальное окно: ", message);
+
+    document.getElementById("modal-message").innerHTML = message;
+
+    let modal = document.getElementById("modal");
+    let modalContent = document.getElementById("modal-content");
+    let buttonsContainer = document.getElementById("modal-buttons");
+
+    buttonsContainer.innerHTML = "";
+
+    let mainButton = document.createElement("button");
+    mainButton.innerText = buttonText;
+    mainButton.className = "button";
+    mainButton.onclick = function () {
+        console.log("Закрытие модального окна...");
+        closeModal(callback);
+    };
+    buttonsContainer.appendChild(mainButton);
+
+    modal.style.display = "flex";
+    setTimeout(() => modalContent.classList.add("show"), 50);
+  }
+
+  function closeModal(callback = null) {
+      let modal = document.getElementById("modal");
+      let modalContent = document.getElementById("modal-content");
+
+      modalContent.classList.remove("show");
+      setTimeout(() => {
+          modal.style.display = "none";
+          if (callback) callback();
+      }, 500);
+  }
+
+  function nextStep() {
+    currentStep++;
+    console.log("Текущий шаг:", currentStep);
+
+    if (currentStep === 1) {
+        showChoiceModal("Выбери, что будем есть:", "Пицца 🍕", "Фастфуд 🍔", setFood);
+    } else if (currentStep === 2) {
+        showChoiceModal("Выбери сериал:", "Ходячие мертвецы 🧟", "Ваша честь ⚖️", setSeries);
+    } else if (currentStep === 3) {
+        showModal(`💖 Покажи это Максиму! Сегодня мы будем смотреть "${seriesChoice}" и есть "${foodChoice}"!`, "Ок", closeModalFinal);
+    }
+  }
+
+  function showChoiceModal(message, option1, option2, callback) {
+      console.log("Открываю выбор:", message);
+
+      let buttonsContainer = document.getElementById("modal-buttons");
+      buttonsContainer.innerHTML = "";
+
+      let button1 = document.createElement("button");
+      button1.innerText = option1;
+      button1.className = "button";
+      button1.onclick = function () {
+          callback(option1);
+      };
+
+      let button2 = document.createElement("button");
+      button2.innerText = option2;
+      button2.className = "button";
+      button2.onclick = function () {
+          callback(option2);
+      };
+
+      buttonsContainer.appendChild(button1);
+      buttonsContainer.appendChild(button2);
+
+      document.getElementById("modal-message").innerHTML = message;
+      let modal = document.getElementById("modal");
+      let modalContent = document.getElementById("modal-content");
+      modal.style.display = "flex";
+      setTimeout(() => modalContent.classList.add("show"), 50);
+  }
+
+  function setFood(choice) {
+      foodChoice = choice;
+      nextStep();
+  }
+
+  function setSeries(choice) {
+      seriesChoice = choice;
+      nextStep();
+  }
+
+  function closeModalFinal() {
+      closeModal();
+  }
+</script>
+
+
+</body>
+</html>

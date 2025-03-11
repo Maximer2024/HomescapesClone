@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>О проекте 💖</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            text-align: center;
+            background: linear-gradient(to bottom, #ffb6c1, #ff69b4);
+            background-attachment: fixed;
+            background-size: cover;
+            color: white;
+            padding: 50px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 1.5s ease-in-out;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ff1493;
+            text-shadow: 2px 2px 10px rgba(255, 20, 147, 0.8);
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .heart {
+            color: red;
+            font-size: 30px;
+            animation: heartbeat 1.5s infinite ease-in-out;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 25px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #ff1493, #ff69b4);
+            color: white;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .back-button:hover {
+            background: linear-gradient(45deg, #ff69b4, #ff1493);
+            transform: scale(1.05);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hearts {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 30px;
+            animation: float 3s infinite alternate ease-in-out;
+        }
+
+        @keyframes float {
+            from {
+                transform: translateX(-50%) translateY(0);
+            }
+            to {
+                transform: translateX(-50%) translateY(10px);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="hearts">💖💗💞</div>
+
+<div class="container">
+    <h1>О проекте 💕</h1>
+    <p>
+        Этот проект был создан с <span class="heart">❤️</span> огромной любовью и нежностью специально для самой прекрасной девушки на свете – <b>Саши</b>.
+    </p>
+    <p>
+        В этот день, 8 марта, я хочу сказать тебе, как сильно я тебя люблю и ценю. Этот проект – символ моей любви к тебе,
+        и пусть он всегда напоминает тебе о том, какая ты особенная для меня. <span class="heart">❤️</span>
+    </p>
+    <p>
+        Ты мой свет, моя радость и моя самая большая любовь. Спасибо, что ты есть! <span class="heart">💖</span>
+    </p>
+    <a href="/" class="back-button">Назад</a>
+</div>
+
+</body>
+</html>
